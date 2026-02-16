@@ -62,7 +62,7 @@ The wizard will help you create something like this:
   "description": "Provides real-time weather data and forecasts for locations worldwide with high accuracy and comprehensive coverage including current conditions, hourly forecasts, and historical data.",
   "homepage": "https://api.weather-data.com",
   "categories": ["weather"],
-  "primary_category": "weather",
+  "primary_category": "live",
   "endpoints": [
     {
       "path": "/current",
@@ -163,8 +163,8 @@ Make your description at least 100 characters. Explain what your API does in det
 ### "Agent notes too short"
 Make agent notes at least 50 characters. Provide implementation guidance for AI agents.
 
-### "Primary category not in categories"
-Your primary_category must be one of the values in your categories array.
+### "Invalid primary category"
+Your primary_category must be one of these API types: "reference", "live", "computational", "transactional", "enrichment", "personal", or "discovery".
 
 ### "File not found"
 Run `amp init` first to create a manifest, or use `-f` flag to specify the file path.

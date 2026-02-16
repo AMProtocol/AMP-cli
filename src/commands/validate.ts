@@ -78,6 +78,11 @@ export async function validateCommand(options: ValidateOptions) {
           result.errors.forEach((error, index) => {
             console.log(chalk.red(`  ${index + 1}. ${error.field}: ${error.message}`));
           });
+        } else {
+          // If no errors array, show the entire response for debugging
+          console.log(chalk.red.bold('\nValidation failed but no specific errors were provided.'));
+          console.log(chalk.gray('\nValidator response:'));
+          console.log(chalk.gray(JSON.stringify(result, null, 2)));
         }
 
         if (result.warnings && result.warnings.length > 0) {

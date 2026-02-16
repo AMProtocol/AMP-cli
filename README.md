@@ -248,18 +248,28 @@ amp publish
 - `name`: API name (string)
 - `version`: Semantic version (e.g., "1.0.0")
 - `description`: Min 100 characters
-- `categories`: Array of categories
-- `primary_category`: Must be in categories array
+- `categories`: Array of domain categories (from controlled vocabulary below)
+- `primary_category`: API type - one of: "reference", "live", "computational", "transactional", "enrichment", "personal", "discovery"
 - `endpoints`: At least one endpoint required
 - `pricing.model`: "free", "usage_based", or "subscription"
 - `authentication.type`: "none", "api_key", "oauth2", or "bearer"
 - `agent_notes`: Min 50 characters - guidance for AI agents
 
-### Standard Categories
+### Primary Category Types
+
+- `reference`: Static knowledge bases, documentation, reference data
+- `live`: Real-time data sources (weather, markets, sensors)
+- `computational`: APIs that perform calculations or transformations
+- `transactional`: APIs that execute actions or state changes
+- `enrichment`: APIs that augment existing data with additional context
+- `personal`: User-specific data requiring authentication
+- `discovery`: Meta-APIs for finding other data sources
+
+### Standard Domain Categories
 
 ```
 chemistry, biology, physics, mathematics, finance, weather,
-geography, food_science, engineering, legal, medical,
+geography, food-science, engineering, legal, medical,
 education, translation, media, general
 ```
 
@@ -274,7 +284,7 @@ education, translation, media, general
   "homepage": "https://api.weather-data.com",
   "documentation": "https://docs.weather-data.com",
   "categories": ["weather", "geography"],
-  "primary_category": "weather",
+  "primary_category": "live",
   "endpoints": [
     {
       "path": "/current",
