@@ -470,8 +470,3 @@ MIT License - See [LICENSE](LICENSE) file for details
 ## About
 
 The Agent Manifest Protocol is an open standard for API metadata that enables AI agents to dynamically discover, evaluate, and compensate data APIs at runtime. Created by Brandon Weber ([@brandon-weber](https://github.com/brandon-weber)).
-
-**Vision**: Building infrastructure for the AI agent data economy where:
-- Phase 1 (Current): Discovery and manual compensation
-- Phase 2: Automated clearinghouse settlement
-- Phase 3: Domain-expert ecosystem for monetizing specialized knowledge
