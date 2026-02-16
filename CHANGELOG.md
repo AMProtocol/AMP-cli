@@ -5,6 +5,19 @@ All notable changes to the AMP CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.6] - 2026-02-16
+
+### Fixed
+- Fixed validator response handling - CLI now correctly reads `passed` field instead of non-existent `valid` field
+- Improved validation success output to show count of passed checks
+- Fixed TypeScript interface to match actual validator API response structure
+
+## [0.1.5] - 2026-02-16
+
+### Fixed
+- Improved error messages when validator returns no specific error details
+- Added fallback to display full validator response for debugging
+
 ## [0.1.4] - 2026-02-16
 
 ### Fixed
