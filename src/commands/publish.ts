@@ -12,7 +12,17 @@ interface PublishOptions {
 }
 
 interface ValidationResult {
-  valid: boolean;
+  passed: boolean;
+  url: string;
+  validated_at: string;
+  spec_version: string;
+  checks: Array<{
+    name: string;
+    passed: boolean;
+    message: string;
+    severity: string;
+  }>;
+  verification_token?: string;
   errors?: Array<{
     field: string;
     message: string;
@@ -89,7 +99,7 @@ export async function publishCommand(options: PublishOptions) {
         }
       );
 
-      if (!validateResponse.data.valid) {
+      if (!validateResponse.data.passed) {
         console.log(chalk.red.bold('❌ Validation Failed'));
 
         if (validateResponse.data.errors && validateResponse.data.errors.length > 0) {
