@@ -1,16 +1,23 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { initCommand } from './commands/init';
 import { validateCommand } from './commands/validate';
 import { publishCommand } from './commands/publish';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf-8'));
 
 const program = new Command();
 
 program
   .name('amp')
   .description('Agent Manifest Protocol (AMP) CLI - Create, validate, and publish API manifests')
-  .version('0.1.0');
+  .version(packageJson.version);
 
 program
   .command('init')
