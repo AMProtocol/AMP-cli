@@ -5,10 +5,16 @@ All notable changes to the AMP CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.7] - 2026-02-16
+## [0.1.8] - 2026-02-16
 
 ### Fixed
 - Fixed `amp --version` command to read version dynamically from package.json instead of hardcoded value
+- Fixed CommonJS compatibility for version reading
+
+## [0.1.7] - 2026-02-16
+
+### Note
+- Version exists in git but had npm registry issues, republished as 0.1.8
 
 ## [0.1.6] - 2026-02-16
 
