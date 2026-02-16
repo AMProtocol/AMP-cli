@@ -1,0 +1,44 @@
+{
+  "name": "@agentmanifest/cli",
+  "version": "0.1.0",
+  "description": "CLI tool for creating, validating, and publishing Agent Manifest Protocol (AMP) manifests",
+  "main": "dist/index.js",
+  "bin": {
+    "amp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "amp",
+    "agent-manifest",
+    "api-discovery",
+    "ai-agents",
+    "manifest",
+    "cli"
+  ],
+  "author": "Brandon Weber <brandon@agent-manifest.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AMProtocol/amp-cli.git"
+  },
+  "homepage": "https://agent-manifest.com",
+  "dependencies": {
+    "commander": "^12.0.0",
+    "inquirer": "^9.2.15",
+    "chalk": "^4.1.2",
+    "axios": "^1.6.7"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^20.11.19",
+    "typescript": "^5.3.3",
+    "tsx": "^4.7.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
