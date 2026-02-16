@@ -10,7 +10,17 @@ interface ValidateOptions {
 }
 
 interface ValidationResult {
-  valid: boolean;
+  passed: boolean;
+  url: string;
+  validated_at: string;
+  spec_version: string;
+  checks: Array<{
+    name: string;
+    passed: boolean;
+    message: string;
+    severity: string;
+  }>;
+  verification_token?: string;
   errors?: Array<{
     field: string;
     message: string;
@@ -57,9 +67,26 @@ export async function validateCommand(options: ValidateOptions) {
 
       const result = response.data;
 
-      if (result.valid) {
+      if (result.passed) {
         console.log(chalk.green.bold('✅ Validation Passed'));
-        console.log(chalk.gray('\nYour manifest is compliant with AMP specification v0.1'));
+        console.log(chalk.gray(`\nYour manifest is compliant with AMP specification ${result.spec_version}`));
+
+        // Show validation checks
+        if (result.checks && result.checks.length > 0) {
+          const failedChecks = result.checks.filter(c => !c.passed);
+          const passedChecks = result.checks.filter(c => c.passed);
+
+          if (passedChecks.length > 0) {
+            console.log(chalk.green.bold(`\n✓ ${passedChecks.length} checks passed`));
+          }
+
+          if (failedChecks.length > 0) {
+            console.log(chalk.red.bold('\n✗ Failed checks:'));
+            failedChecks.forEach(check => {
+              console.log(chalk.red(`  • ${check.name}: ${check.message}`));
+            });
+          }
+        }
 
         if (result.warnings && result.warnings.length > 0) {
           console.log(chalk.yellow.bold('\n⚠️  Warnings:'));
