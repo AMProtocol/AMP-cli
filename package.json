@@ -1,6 +1,6 @@
 {
   "name": "@agentmanifest/cli",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "CLI tool for creating, validating, and publishing Agent Manifest Protocol (AMP) manifests",
   "main": "dist/index.js",
   "bin": {
