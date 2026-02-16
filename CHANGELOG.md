@@ -5,6 +5,13 @@ All notable changes to the AMP CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.11] - 2026-02-16
+
+### Fixed
+- Fixed `amp publish` to recognize 'completed' status from registry
+- Improved async polling to correctly handle registry response format
+- All publish features now fully functional with live registry
+
 ## [0.1.10] - 2026-02-16
 
 ### Fixed
