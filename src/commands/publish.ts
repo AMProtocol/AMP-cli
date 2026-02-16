@@ -5,7 +5,7 @@ import axios from 'axios';
 import inquirer from 'inquirer';
 
 const VALIDATOR_URL = 'https://validator.agent-manifest.com/validate';
-const REGISTRY_URL = 'https://agent-manifest.com/listings/submit';
+const REGISTRY_URL = 'https://api.agent-manifest.com/listings/submit';
 
 interface PublishOptions {
   file?: string;
