@@ -5,6 +5,21 @@ All notable changes to the AMP CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.10] - 2026-02-16
+
+### Fixed
+- Fixed `amp publish` to handle async registry submissions with status polling
+- Fixed registry URL from `agent-manifest.com` to `api.agent-manifest.com`
+- Added support for 'completed' status in addition to 'approved'
+- Increased polling timeout to 60 seconds
+- Improved error messages to show full response when details are missing
+
+## [0.1.9] - 2026-02-16
+
+### Fixed
+- Fixed validator response field in publish command (changed from 'valid' to 'passed')
+- Aligned publish command validation logic with validate command
+
 ## [0.1.8] - 2026-02-16
 
 ### Fixed

@@ -30,10 +30,35 @@ interface ValidationResult {
 }
 
 interface PublishResult {
-  success: boolean;
+  success?: boolean;
   listing_id?: string;
   message?: string;
   url?: string;
+  meta?: {
+    spec_version: string;
+    endpoint_description: string;
+  };
+  data?: {
+    submission_id: string;
+    status: string;
+    status_url: string;
+    message: string;
+  };
+}
+
+interface StatusResult {
+  submission_id: string;
+  url?: string;
+  status: 'pending' | 'validating' | 'approved' | 'rejected' | 'completed';
+  created_at?: string;
+  validated_at?: string;
+  listing_id?: string;
+  listing_url?: string;
+  validation_errors?: Array<{
+    field: string;
+    message: string;
+  }>;
+  message?: string;
 }
 
 export async function publishCommand(options: PublishOptions) {
@@ -156,29 +181,87 @@ export async function publishCommand(options: PublishOptions) {
 
       const result = publishResponse.data;
 
-      if (result.success) {
-        console.log(chalk.green.bold('\n✅ Successfully Published!'));
+      // Handle async submission response
+      if (result.data?.submission_id) {
+        const submissionId = result.data.submission_id;
+        const statusUrl = result.data.status_url;
 
+        console.log(chalk.green('✓ Submission accepted'));
+        console.log(chalk.gray(`\nSubmission ID: ${submissionId}`));
+        console.log(chalk.gray('Status: Validating...'));
+
+        // Poll for status
+        const baseUrl = REGISTRY_URL.replace('/listings/submit', '');
+        const fullStatusUrl = `${baseUrl}${statusUrl}`;
+
+        let attempts = 0;
+        const maxAttempts = 60; // 60 seconds max
+        let finalStatus: StatusResult | null = null;
+
+        while (attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+          attempts++;
+
+          try {
+            const statusResponse = await axios.get<StatusResult>(fullStatusUrl, { timeout: 5000 });
+            finalStatus = statusResponse.data;
+
+            if (finalStatus.status === 'approved' || finalStatus.status === 'completed') {
+              console.log(chalk.green.bold('\n✅ Successfully Published!'));
+              if (finalStatus.listing_id) {
+                console.log(chalk.gray(`\nListing ID: ${finalStatus.listing_id}`));
+              }
+              if (finalStatus.listing_url) {
+                const fullListingUrl = finalStatus.listing_url.startsWith('http')
+                  ? finalStatus.listing_url
+                  : `https://api.agent-manifest.com${finalStatus.listing_url}`;
+                console.log(chalk.gray(`View at: ${fullListingUrl}`));
+              }
+              console.log(chalk.gray('\nYour API is now discoverable in the AMP registry!'));
+              console.log(chalk.gray('AI agents can find and use your API through:'));
+              console.log(chalk.cyan(`  ${manifest.homepage}/.well-known/agent-manifest.json`));
+              process.exit(0);
+            } else if (finalStatus.status === 'rejected') {
+              console.log(chalk.red.bold('\n❌ Publication Rejected'));
+              if (finalStatus.validation_errors && finalStatus.validation_errors.length > 0) {
+                console.log(chalk.red.bold('\nValidation Errors:'));
+                finalStatus.validation_errors.forEach((error, index) => {
+                  console.log(chalk.red(`  ${index + 1}. ${error.field}: ${error.message}`));
+                });
+              } else if (finalStatus.message) {
+                console.log(chalk.red(`\n${finalStatus.message}`));
+              }
+              process.exit(1);
+            }
+            // Still pending/validating, continue polling
+          } catch (statusError) {
+            // Ignore polling errors, will retry
+          }
+        }
+
+        // Timeout
+        console.log(chalk.yellow.bold('\n⏱️  Validation Timeout'));
+        console.log(chalk.gray(`\nValidation is taking longer than expected.`));
+        console.log(chalk.gray(`Check status manually:`));
+        console.log(chalk.cyan(`  ${fullStatusUrl}`));
+        process.exit(1);
+      }
+      // Handle legacy sync response (if registry changes back)
+      else if (result.success) {
+        console.log(chalk.green.bold('\n✅ Successfully Published!'));
         if (result.listing_id) {
           console.log(chalk.gray(`\nListing ID: ${result.listing_id}`));
         }
-
         if (result.url) {
           console.log(chalk.gray(`View at: ${result.url}`));
         }
-
-        if (result.message) {
-          console.log(chalk.cyan(`\n${result.message}`));
-        }
-
         console.log(chalk.gray('\nYour API is now discoverable in the AMP registry!'));
         console.log(chalk.gray('AI agents can find and use your API through:'));
         console.log(chalk.cyan(`  ${manifest.homepage}/.well-known/agent-manifest.json`));
       } else {
         console.log(chalk.red.bold('❌ Publication Failed'));
-        if (result.message) {
-          console.log(chalk.red(`\n${result.message}`));
-        }
+        console.log(chalk.gray('\nUnexpected response format:'));
+        console.log(chalk.gray(JSON.stringify(result, null, 2)));
         process.exit(1);
       }
     } catch (publishError: any) {
