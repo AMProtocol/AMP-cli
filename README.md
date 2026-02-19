@@ -28,54 +28,20 @@ npx amp --help
 
 ### `amp init`
 
-Interactively create a new `agent-manifest.json` file in the current directory.
+Scaffold a valid `agent-manifest.json` file in the current directory.
 
 ```bash
 amp init
 ```
 
-This command walks you through all required fields defined in the AMP v0.1 specification:
-
-- **Basic Information**: Name, version, description, URLs
-- **Categories**: Primary and secondary categories from controlled vocabulary
-- **Endpoints**: API endpoints with methods, parameters, and responses
-- **Pricing**: Free, usage-based, or subscription models
-- **Authentication**: None, API key, OAuth2, or bearer token
-- **Rate Limits**: Request limits per minute/day (optional)
-- **Reliability**: Uptime and response time metrics (optional)
-- **Contact**: Support email, URLs, GitHub (optional)
-- **Agent Notes**: Implementation guidance for AI agents (min 50 chars)
-
-The generated manifest will be saved as `agent-manifest.json` in your current directory.
-
-#### Example Session
+Creates a minimal valid manifest per the AMP v0.2 specification. Edit the file to add your API details, or have an AI agent fill it in. Then run `amp validate` to check compliance.
 
 ```bash
 $ amp init
 
-🚀 Agent Manifest Protocol - Interactive Setup
+✅ Created agent-manifest.json
 
-📋 Basic Information
-? API name: Chemistry Calculator API
-? Version (semantic versioning): 1.0.0
-? Description (min 100 characters): A comprehensive chemistry API providing molecular calculations, compound information, and reaction predictions for AI agents working with chemical data
-? Homepage URL (optional): https://api.chemcalc.com
-? Documentation URL (optional): https://docs.chemcalc.com
-
-🏷️  Categories
-? Select categories: chemistry, education
-? Select primary category: chemistry
-
-🔌 Endpoints
-? Endpoint path: /calculate/molar-mass
-? HTTP method: POST
-? Endpoint description: Calculate molar mass of chemical compounds
-? Response description: Returns molar mass in g/mol with compound details
-? Add parameters to this endpoint? Yes
-...
-
-✅ Success!
-Manifest created at: /path/to/agent-manifest.json
+Edit the file, then run "amp validate".
 ```
 
 ---
@@ -119,7 +85,7 @@ File: /path/to/agent-manifest.json
 Sending to validator API...
 ✅ Validation Passed
 
-Your manifest is compliant with AMP specification v0.1
+Your manifest is compliant with AMP specification v0.2
 
 Next step: Run "amp publish" to submit to registry
 ```
@@ -138,7 +104,7 @@ Sending to validator API...
 
 Errors:
   1. description: Must be at least 100 characters (currently 45)
-  2. primary_category: Must be one of the categories in the categories array
+  2. primary_category: Must be one of: reference, live, computational, transactional, enrichment, personal, discovery
   3. agent_notes: Must be at least 50 characters (currently 20)
 
 Please fix the errors and try again.
@@ -223,7 +189,7 @@ Run "amp validate" for detailed validation output.
 ### Complete Setup Flow
 
 ```bash
-# 1. Create a new manifest interactively
+# 1. Create a new manifest
 amp init
 
 # 2. Review the generated file
@@ -240,20 +206,23 @@ amp publish
 
 ---
 
-## Manifest Schema (v0.1)
+## Manifest Schema (v0.2)
 
 ### Required Fields
 
-- `spec_version`: Always `"agentmanifest-0.1"`
-- `name`: API name (string)
+- `spec_version`: Always `"agentmanifest-0.2"`
+- `name`: API name (3-100 characters)
 - `version`: Semantic version (e.g., "1.0.0")
 - `description`: Min 100 characters
 - `categories`: Array of domain categories (from controlled vocabulary below)
 - `primary_category`: API type - one of: "reference", "live", "computational", "transactional", "enrichment", "personal", "discovery"
 - `endpoints`: At least one endpoint required
-- `pricing.model`: "free", "usage_based", or "subscription"
-- `authentication.type`: "none", "api_key", "oauth2", or "bearer"
+- `pricing.model`: "free", "per-query", "subscription", "pay-what-you-want", or "tiered"
+- `authentication.required`: Boolean; `type`: "api_key", "oauth2", "bearer", or "none"
+- `reliability.maintained_by`: "individual", "organization", or "community"
 - `agent_notes`: Min 50 characters - guidance for AI agents
+- `contact`: Contact email or URL (string)
+- `listing_requested`: Boolean
 
 ### Primary Category Types
 
@@ -268,21 +237,19 @@ amp publish
 ### Standard Domain Categories
 
 ```
-chemistry, biology, physics, mathematics, finance, weather,
-geography, food-science, engineering, legal, medical,
-education, translation, media, general
+food-science, materials, construction, music-gear, chemistry, biology,
+geography, finance, legal, medical, engineering, agriculture, computing,
+language, history, commerce, identity, weather, logistics, other
 ```
 
 ### Example Manifest
 
 ```json
 {
-  "spec_version": "agentmanifest-0.1",
+  "spec_version": "agentmanifest-0.2",
   "name": "Weather Data API",
   "version": "2.1.0",
   "description": "Real-time weather data and forecasts for locations worldwide. Provides current conditions, hourly forecasts, and historical weather data with high accuracy and global coverage.",
-  "homepage": "https://api.weather-data.com",
-  "documentation": "https://docs.weather-data.com",
   "categories": ["weather", "geography"],
   "primary_category": "live",
   "endpoints": [
@@ -290,45 +257,41 @@ education, translation, media, general
       "path": "/current",
       "method": "GET",
       "description": "Get current weather conditions for a location",
-      "parameters": {
-        "query": {
-          "location": {
-            "type": "string",
-            "required": true,
-            "description": "City name or coordinates (lat,lon)"
-          }
+      "parameters": [
+        {
+          "name": "location",
+          "type": "string",
+          "required": true,
+          "description": "City name or coordinates (lat,lon)"
         }
-      },
-      "response": {
-        "type": "object",
-        "description": "Current weather data including temperature, conditions, and metadata"
-      }
+      ],
+      "response_description": "Current weather data including temperature, conditions, and metadata"
     }
   ],
   "pricing": {
-    "model": "usage_based",
-    "details": "First 1000 requests free per month, then $0.001 per request"
-  },
-  "authentication": {
-    "type": "api_key",
-    "config": {
-      "header": "X-API-Key",
-      "signup_url": "https://api.weather-data.com/signup"
+    "model": "per-query",
+    "free_tier": {
+      "queries_per_day": 1000,
+      "queries_per_month": 10000
+    },
+    "paid_tier": {
+      "amount_usd": 0.001,
+      "unit": "per request",
+      "description": "$0.001 per request after free tier"
     }
   },
-  "rate_limits": {
-    "requests_per_minute": 60,
-    "requests_per_day": 10000
+  "authentication": {
+    "required": true,
+    "type": "api_key",
+    "instructions": "Obtain API key at https://api.weather-data.com/signup"
   },
-  "reliability_metrics": {
-    "uptime_percentage": 99.9,
-    "avg_response_time_ms": 150
-  },
-  "contact": {
-    "email": "support@weather-data.com",
-    "support_url": "https://support.weather-data.com"
+  "reliability": {
+    "maintained_by": "organization",
+    "status_url": "https://status.weather-data.com",
+    "expected_uptime_pct": 99.9
   },
   "agent_notes": "Use the 'location' parameter with city names for simplicity. Coordinates provide more precise results. Response includes semantic metadata to help interpret weather conditions.",
+  "contact": "support@weather-data.com",
   "listing_requested": true,
   "last_updated": "2026-02-15T10:30:00Z"
 }
@@ -340,14 +303,14 @@ education, translation, media, general
 
 The validator checks for:
 
-1. **Spec Version**: Must be `"agentmanifest-0.1"`
-2. **Semantic Versioning**: Version must follow `x.y.z` format
+1. **Spec Version**: Must be `"agentmanifest-0.2"`
+2. **Semantic Versioning**: Version must follow `x.y.z` format (with optional pre-release/build)
 3. **Description Length**: Minimum 100 characters
 4. **Agent Notes Length**: Minimum 50 characters
-5. **Category Consistency**: Primary category must be in categories array
-6. **Endpoints**: At least one endpoint required
+5. **Primary Category**: Must be one of reference, live, computational, transactional, enrichment, personal, discovery
+6. **Endpoints**: At least one endpoint; description and response_description min 20 characters
 7. **Valid URLs**: All URLs must be HTTPS
-8. **Required Fields**: All mandatory fields present
+8. **Required Fields**: All mandatory fields present including reliability
 9. **Type Validation**: Fields match expected types
 
 ---
@@ -439,7 +402,7 @@ If you get validation errors, review the error messages carefully. Common issues
 - **Description too short**: Must be at least 100 characters
 - **Agent notes too short**: Must be at least 50 characters
 - **Invalid version**: Must follow semantic versioning (e.g., "1.0.0")
-- **Category mismatch**: Primary category must be in your categories array
+- **Invalid primary category**: Must be one of reference, live, computational, transactional, enrichment, personal, discovery
 - **Missing endpoints**: At least one endpoint required
 
 ---

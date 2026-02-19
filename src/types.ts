@@ -1,104 +1,73 @@
 /**
- * Type definitions for Agent Manifest Protocol v0.1
+ * Type definitions for Agent Manifest Protocol v0.2
  */
 
-export interface Parameter {
-  type: 'string' | 'number' | 'boolean' | 'array' | 'object';
+export interface EndpointParameter {
+  name: string;
+  type: string;
   required: boolean;
   description: string;
-  default?: any;
-  enum?: any[];
-}
-
-export interface ResponseSchema {
-  type: string;
-  description: string;
-  properties?: Record<string, any>;
-}
-
-export interface EndpointExample {
-  request: string;
-  response: any;
-  description?: string;
 }
 
 export interface Endpoint {
   path: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   description: string;
-  parameters?: {
-    query?: Record<string, Parameter>;
-    body?: Record<string, Parameter>;
-    path?: Record<string, Parameter>;
-  };
-  response: ResponseSchema;
-  examples?: EndpointExample[];
+  parameters?: EndpointParameter[];
+  response_description: string;
 }
 
-export interface PricingDetails {
-  free_tier?: string;
-  rates?: {
-    per_request?: number;
-    per_month?: number;
-    currency?: string;
-  };
-  billing_period?: string;
+export interface FreeTier {
+  queries_per_day?: number | null;
+  queries_per_month?: number | null;
+}
+
+export interface PaidTier {
+  amount_usd: number;
+  unit: string;
+  description: string;
 }
 
 export interface Pricing {
-  model: 'free' | 'usage_based' | 'subscription';
-  details?: string | PricingDetails;
+  model: 'free' | 'per-query' | 'subscription' | 'pay-what-you-want' | 'tiered';
+  free_tier?: FreeTier | null;
+  paid_tier?: PaidTier | null;
+  support_url?: string | null;
 }
 
-export interface AuthenticationConfig {
-  header?: string;
-  signup_url?: string;
-  oauth_flow?: string;
-  token_url?: string;
-  scopes?: string[];
+export interface Payment {
+  provider?: string;
+  checkout_url: string;
+  key_provisioning_url?: string;
+  accepted_methods?: string[];
+  prepay_required?: boolean;
 }
 
 export interface Authentication {
-  type: 'none' | 'api_key' | 'oauth2' | 'bearer';
-  config?: AuthenticationConfig;
+  required: boolean;
+  type: 'api_key' | 'oauth2' | 'bearer' | 'none' | null;
+  instructions?: string | null;
 }
 
-export interface RateLimits {
-  requests_per_minute?: number;
-  requests_per_hour?: number;
-  requests_per_day?: number;
-}
-
-export interface ReliabilityMetrics {
-  uptime_percentage?: number;
-  avg_response_time_ms?: number;
-  last_30_days_uptime?: number;
-  maintained_by?: string;
-}
-
-export interface Contact {
-  email?: string;
-  support_url?: string;
-  github?: string;
-  twitter?: string;
+export interface Reliability {
+  maintained_by: 'individual' | 'organization' | 'community';
+  status_url?: string | null;
+  expected_uptime_pct?: number | null;
 }
 
 export interface AgentManifest {
-  spec_version: 'agentmanifest-0.1';
+  spec_version: 'agentmanifest-0.2';
   name: string;
   version: string;
   description: string;
-  homepage?: string;
-  documentation?: string;
   categories: string[];
-  primary_category: string;
+  primary_category: 'reference' | 'live' | 'computational' | 'transactional' | 'enrichment' | 'personal' | 'discovery';
   endpoints: Endpoint[];
   pricing: Pricing;
   authentication: Authentication;
-  rate_limits?: RateLimits;
-  reliability_metrics?: ReliabilityMetrics;
-  contact?: Contact;
+  reliability: Reliability;
   agent_notes: string;
-  listing_requested?: boolean;
+  contact: string;
+  listing_requested: boolean;
   last_updated: string;
 }

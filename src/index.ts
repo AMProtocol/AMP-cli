@@ -18,7 +18,7 @@ program
 
 program
   .command('init')
-  .description('Interactively create a new agent-manifest.json file')
+  .description('Scaffold a valid agent-manifest.json')
   .action(initCommand);
 
 program

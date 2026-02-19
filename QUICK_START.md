@@ -17,7 +17,7 @@ cd /path/to/your/api
 amp init
 ```
 
-Follow the prompts to create your `agent-manifest.json`.
+Creates `agent-manifest.json`. Edit it to add your API details.
 
 ### 2. Validate Your Manifest
 
@@ -52,15 +52,14 @@ amp publish
 
 ## Minimal Manifest Example
 
-The wizard will help you create something like this:
+`amp init` creates a scaffold like this. Edit to add your API details:
 
 ```json
 {
-  "spec_version": "agentmanifest-0.1",
+  "spec_version": "agentmanifest-0.2",
   "name": "Weather Data API",
   "version": "1.0.0",
   "description": "Provides real-time weather data and forecasts for locations worldwide with high accuracy and comprehensive coverage including current conditions, hourly forecasts, and historical data.",
-  "homepage": "https://api.weather-data.com",
   "categories": ["weather"],
   "primary_category": "live",
   "endpoints": [
@@ -68,19 +67,24 @@ The wizard will help you create something like this:
       "path": "/current",
       "method": "GET",
       "description": "Get current weather for a location",
-      "response": {
-        "type": "object",
-        "description": "Current weather conditions"
-      }
+      "parameters": [],
+      "response_description": "Current weather conditions including temperature and conditions"
     }
   ],
   "pricing": {
-    "model": "free"
+    "model": "free",
+    "free_tier": { "queries_per_day": null, "queries_per_month": null }
   },
   "authentication": {
+    "required": false,
     "type": "none"
   },
+  "reliability": {
+    "maintained_by": "organization"
+  },
   "agent_notes": "Simple weather API. Use location parameter with city names or coordinates for precise results.",
+  "contact": "support@weather-data.com",
+  "listing_requested": true,
   "last_updated": "2026-02-15T10:30:00Z"
 }
 ```
@@ -122,8 +126,8 @@ amp publish
 
 1. **Description Length**: Must be ≥100 characters. Be descriptive!
 2. **Agent Notes**: Must be ≥50 characters. Tell agents how to use your API.
-3. **Categories**: Choose the most relevant. Primary category must be in your categories list.
-4. **Homepage**: This is where your manifest will be hosted (`https://your-api.com/.well-known/agent-manifest.json`)
+3. **Categories**: Choose the most relevant. Primary category (reference, live, computational, etc.) is separate from categories.
+4. **Homepage**: Host your manifest at `https://your-api.com/.well-known/agent-manifest.json`
 
 ## Hosting Your Manifest
 

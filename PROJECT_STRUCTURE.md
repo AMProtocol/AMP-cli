@@ -8,7 +8,7 @@ Complete Node.js CLI tool for the Agent Manifest Protocol, ready for npm publica
 amp-cli/
 ├── src/                          # TypeScript source files
 │   ├── commands/                 # Command implementations
-│   │   ├── init.ts              # Interactive manifest creation
+│   │   ├── init.ts              # Manifest scaffolding
 │   │   ├── validate.ts          # Manifest validation
 │   │   └── publish.ts           # Registry submission
 │   ├── constants.ts             # Controlled vocabularies
@@ -38,12 +38,10 @@ amp-cli/
 - Defines three main commands: init, validate, publish
 - Includes version and help information
 
-#### `commands/init.ts` (Interactive Scaffolding)
-- Full wizard for creating agent-manifest.json
-- Inquirer prompts for all required fields
-- Validates user input in real-time
-- Supports multiple endpoints with parameters
-- Generates compliant AMP v0.1 manifest
+#### `commands/init.ts` (Scaffolding)
+- Creates minimal valid agent-manifest.json per AMP v0.2 spec
+- No prompts - edit the file or have an AI agent fill it in
+- Prompts for overwrite confirmation if file already exists
 
 #### `commands/validate.ts` (Validation)
 - Reads manifest from filesystem
@@ -58,12 +56,14 @@ amp-cli/
 - Returns listing ID and registry URL
 
 #### `constants.ts` (Controlled Vocabularies)
-- Standard categories (15 categories)
-- Pricing models (free, usage_based, subscription)
+- Standard categories (20 categories: food-science, materials, chemistry, etc.)
+- Primary categories (reference, live, computational, transactional, enrichment, personal, discovery)
+- Pricing models (free, per-query, subscription, pay-what-you-want, tiered)
 - Authentication types (none, api_key, oauth2, bearer)
+- Maintained-by options (individual, organization, community)
 
 #### `types.ts` (TypeScript Definitions)
-- Complete type definitions for AMP v0.1
+- Complete type definitions for AMP v0.2
 - Interfaces for all manifest sections
 - Type safety for parameters and responses
 
@@ -125,14 +125,10 @@ amp-cli/
 
 ## Key Features
 
-### Interactive Creation (`amp init`)
-- Step-by-step wizard
-- Real-time validation
-- Multi-endpoint support
-- Parameter configuration
-- Optional sections (rate limits, reliability)
-- Contact information
-- Agent guidance notes
+### Scaffolding (`amp init`)
+- Instant manifest creation
+- Minimal valid template per spec
+- Edit directly or use AI agent to fill in
 
 ### Validation (`amp validate`)
 - API integration

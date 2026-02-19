@@ -5,6 +5,30 @@ All notable changes to the AMP CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-02-19
+
+### Added
+- AMP v0.2 spec support (agentmanifest-0.2)
+- New categories: food-science, materials, construction, music-gear, agriculture, computing, language, history, commerce, identity, logistics, other
+- New primary categories: reference, live, computational, transactional, enrichment, personal, discovery
+- New pricing models: per-query, pay-what-you-want, tiered
+- Required reliability section with maintained_by
+- Endpoint parameters as array format; response_description required
+
+### Changed
+- `amp init` now scaffolds a manifest (no wizard). Edit the file or use an AI agent to fill.
+- Removed interactive wizard - scaffold-only approach for simpler UX
+- Overwrite confirmation when agent-manifest.json already exists
+- Type definitions updated for v0.2 schema
+- Contact is now a single string (email or URL)
+- Authentication uses required flag + instructions instead of config
+
+### Removed
+- Interactive wizard (20+ prompts)
+- Rate limits (not in v0.2 spec)
+- Homepage/documentation from required fields
+- Old v0.1 category and pricing models
+
 ## [0.1.11] - 2026-02-16
 
 ### Fixed
