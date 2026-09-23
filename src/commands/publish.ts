@@ -3,7 +3,7 @@ import path from 'path';
 import chalk from 'chalk';
 import axios from 'axios';
 import inquirer from 'inquirer';
-import { validateManifestObject } from '@agentmanifest/validator';
+import { validateManifestRemote } from '../lib/remoteValidate';
 
 const REGISTRY_URL = 'https://api.agent-manifest.com/listings/submit';
 const ISSUE_FORM_URL =
@@ -73,17 +73,19 @@ export async function publishCommand(options: PublishOptions) {
       await fs.writeFile(filePath, JSON.stringify(manifest, null, 2));
     }
 
-    if (!process.env.JWT_SECRET) {
-      process.env.JWT_SECRET = 'amp-cli-local-validation-only';
-    }
-
     console.log(chalk.gray('Step 1/2: Validating manifest...'));
-    const validation = await validateManifestObject(manifest, manifest.homepage);
+    const validation = await validateManifestRemote(manifest, manifest.homepage);
     if (!validation.passed) {
       console.log(chalk.red.bold('❌ Validation Failed'));
-      validation.checks
-        .filter((c) => !c.passed && c.severity === 'error')
-        .forEach((c, i) => console.log(chalk.red(`  ${i + 1}. ${c.name}: ${c.message}`)));
+      const errors =
+        validation.checks?.filter((c) => !c.passed && c.severity === 'error') ?? [];
+      if (errors.length) {
+        errors.forEach((c, i) => console.log(chalk.red(`  ${i + 1}. ${c.name}: ${c.message}`)));
+      } else if (validation.errors?.length) {
+        validation.errors.forEach((e, i) =>
+          console.log(chalk.red(`  ${i + 1}. ${e.field}: ${e.message}`))
+        );
+      }
       process.exit(1);
     }
     console.log(chalk.green('✓ Validation passed'));

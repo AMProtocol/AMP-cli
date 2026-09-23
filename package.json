@@ -1,11 +1,18 @@
 {
   "name": "@agentmanifest/cli",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "CLI tool for creating, validating, and publishing Agent Manifest Protocol (AMP) manifests",
   "main": "dist/index.js",
   "bin": {
     "amp": "dist/index.js"
   },
+  "files": [
+    "dist",
+    "fixtures",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
@@ -28,7 +35,6 @@
   },
   "homepage": "https://agent-manifest.com",
   "dependencies": {
-    "@agentmanifest/validator": "^0.3.0",
     "@apidevtools/swagger-parser": "^10.1.1",
     "axios": "^1.6.7",
     "chalk": "^4.1.2",

@@ -1,46 +1,7 @@
-# Source files (only include dist/)
 src/
-tsconfig.json
-
-# Tests
-test/
-tests/
-*.test.ts
-*.spec.ts
-
-# Development files
-.github/
-.vscode/
-.idea/
-
-# Documentation (keep README.md)
-docs/
-
-# Git
-.git/
-.gitignore
-
-# CI/CD
-.travis.yml
-.gitlab-ci.yml
-circle.yml
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-
-# Coverage
+.npm-cache/
+node_modules/
 coverage/
-.nyc_output/
-
-# Environment
-.env
-.env.*
-
-# Temporary
-tmp/
-temp/
-*.tmp
+*.test.ts
+vitest.config.ts
+.npmrc

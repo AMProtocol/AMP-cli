@@ -2,16 +2,13 @@ import fs from 'fs/promises';
 import path from 'path';
 import chalk from 'chalk';
 import axios from 'axios';
-import { validateManifestObject } from '@agentmanifest/validator';
-
-const VALIDATOR_URL = 'https://validator.agent-manifest.com/validate';
+import { validateManifestRemote, type ValidationResult } from '../lib/remoteValidate';
 
 interface ValidateOptions {
   file?: string;
-  remote?: boolean;
 }
 
-function printResult(result: Awaited<ReturnType<typeof validateManifestObject>>) {
+function printResult(result: ValidationResult) {
   if (result.passed) {
     console.log(chalk.green.bold('✅ Validation Passed'));
     console.log(chalk.gray(`\nYour manifest is compliant with AMP specification ${result.spec_version}`));
@@ -19,15 +16,20 @@ function printResult(result: Awaited<ReturnType<typeof validateManifestObject>>)
     console.log(chalk.red.bold('❌ Validation Failed'));
   }
 
-  const failedChecks = result.checks.filter((c) => !c.passed && c.severity === 'error');
+  const failedChecks = result.checks?.filter((c) => !c.passed && c.severity === 'error') ?? [];
   if (failedChecks.length > 0) {
     console.log(chalk.red.bold('\nErrors:'));
     failedChecks.forEach((check, i) => {
       console.log(chalk.red(`  ${i + 1}. ${check.name}: ${check.message}`));
     });
+  } else if (result.errors?.length) {
+    console.log(chalk.red.bold('\nErrors:'));
+    result.errors.forEach((error, i) => {
+      console.log(chalk.red(`  ${i + 1}. ${error.field}: ${error.message}`));
+    });
   }
 
-  const warnings = result.checks.filter((c) => !c.passed && c.severity === 'warning');
+  const warnings = result.checks?.filter((c) => !c.passed && c.severity === 'warning') ?? [];
   if (warnings.length > 0) {
     console.log(chalk.yellow.bold('\n⚠️  Warnings:'));
     warnings.forEach((check, i) => {
@@ -56,22 +58,8 @@ export async function validateCommand(options: ValidateOptions) {
       process.exit(1);
     }
 
-    const homepage =
-      typeof manifest.homepage === 'string' ? manifest.homepage : 'local-file';
-
-    if (options.remote) {
-      console.log(chalk.gray('Using remote validator API...'));
-      const response = await axios.post(VALIDATOR_URL, { manifest, url: homepage }, { timeout: 30000 });
-      printResult(response.data);
-      process.exit(response.data.passed ? 0 : 1);
-    }
-
-    if (!process.env.JWT_SECRET) {
-      process.env.JWT_SECRET = 'amp-cli-local-validation-only';
-    }
-
-    console.log(chalk.gray('Validating offline with @agentmanifest/validator...'));
-    const result = await validateManifestObject(manifest, homepage);
+    console.log(chalk.gray('Sending to validator.agent-manifest.com...'));
+    const result = await validateManifestRemote(manifest);
     printResult(result);
 
     if (result.passed) {
@@ -79,12 +67,19 @@ export async function validateCommand(options: ValidateOptions) {
     }
     process.exit(result.passed ? 0 : 1);
   } catch (error: unknown) {
-    const e = error as { code?: string; message?: string };
-    if (e.code === 'ENOENT') {
-      console.error(chalk.red('❌ File Not Found'));
-      console.error(chalk.gray('\nRun "amp init" to create a new manifest.'));
+    if (axios.isAxiosError(error)) {
+      console.error(chalk.red('❌ Could not reach the validator API'));
+      if (error.response?.data) {
+        console.error(chalk.gray(JSON.stringify(error.response.data, null, 2)));
+      }
     } else {
-      console.error(chalk.red(`❌ ${e.message ?? error}`));
+      const e = error as { code?: string; message?: string };
+      if (e.code === 'ENOENT') {
+        console.error(chalk.red('❌ File Not Found'));
+        console.error(chalk.gray('\nRun "amp init" to create a new manifest.'));
+      } else {
+        console.error(chalk.red(`❌ ${e.message ?? error}`));
+      }
     }
     process.exit(1);
   }

@@ -23,9 +23,8 @@ program.command('init').description('Scaffold a valid agent-manifest.json (v0.3)
 
 program
   .command('validate')
-  .description('Validate agent-manifest.json (offline by default)')
+  .description('Validate agent-manifest.json via validator.agent-manifest.com')
   .option('-f, --file <path>', 'Path to manifest file', './agent-manifest.json')
-  .option('--remote', 'Use the hosted validator API instead of offline validation')
   .action(validateCommand);
 
 program
