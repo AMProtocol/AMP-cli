@@ -2,33 +2,42 @@ import fs from 'fs/promises';
 import path from 'path';
 import chalk from 'chalk';
 import axios from 'axios';
+import { validateManifestObject } from '@agentmanifest/validator';
 
 const VALIDATOR_URL = 'https://validator.agent-manifest.com/validate';
 
 interface ValidateOptions {
   file?: string;
+  remote?: boolean;
 }
 
-interface ValidationResult {
-  passed: boolean;
-  url: string;
-  validated_at: string;
-  spec_version: string;
-  checks: Array<{
-    name: string;
-    passed: boolean;
-    message: string;
-    severity: string;
-  }>;
-  verification_token?: string;
-  errors?: Array<{
-    field: string;
-    message: string;
-  }>;
-  warnings?: Array<{
-    field: string;
-    message: string;
-  }>;
+function printResult(result: Awaited<ReturnType<typeof validateManifestObject>>) {
+  if (result.passed) {
+    console.log(chalk.green.bold('✅ Validation Passed'));
+    console.log(chalk.gray(`\nYour manifest is compliant with AMP specification ${result.spec_version}`));
+  } else {
+    console.log(chalk.red.bold('❌ Validation Failed'));
+  }
+
+  const failedChecks = result.checks.filter((c) => !c.passed && c.severity === 'error');
+  if (failedChecks.length > 0) {
+    console.log(chalk.red.bold('\nErrors:'));
+    failedChecks.forEach((check, i) => {
+      console.log(chalk.red(`  ${i + 1}. ${check.name}: ${check.message}`));
+    });
+  }
+
+  const warnings = result.checks.filter((c) => !c.passed && c.severity === 'warning');
+  if (warnings.length > 0) {
+    console.log(chalk.yellow.bold('\n⚠️  Warnings:'));
+    warnings.forEach((check, i) => {
+      console.log(chalk.yellow(`  ${i + 1}. ${check.name}: ${check.message}`));
+    });
+  }
+
+  if (result.badges?.length) {
+    console.log(chalk.cyan(`\nBadges: ${result.badges.join(', ')}`));
+  }
 }
 
 export async function validateCommand(options: ValidateOptions) {
@@ -38,136 +47,44 @@ export async function validateCommand(options: ValidateOptions) {
   console.log(chalk.gray(`File: ${filePath}\n`));
 
   try {
-    // Read the manifest file
     const fileContent = await fs.readFile(filePath, 'utf-8');
-    let manifest;
-
+    let manifest: Record<string, unknown>;
     try {
       manifest = JSON.parse(fileContent);
-    } catch (parseError) {
+    } catch {
       console.error(chalk.red('❌ Invalid JSON'));
-      console.error(chalk.gray('The manifest file contains invalid JSON syntax.'));
       process.exit(1);
     }
 
-    // Send to validator API
-    console.log(chalk.gray('Sending to validator API...'));
+    const homepage =
+      typeof manifest.homepage === 'string' ? manifest.homepage : 'local-file';
 
-    try {
-      const response = await axios.post<ValidationResult>(
-        VALIDATOR_URL,
-        { manifest },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          timeout: 10000,
-        }
-      );
-
-      const result = response.data;
-
-      if (result.passed) {
-        console.log(chalk.green.bold('✅ Validation Passed'));
-        console.log(chalk.gray(`\nYour manifest is compliant with AMP specification ${result.spec_version}`));
-
-        // Show validation checks
-        if (result.checks && result.checks.length > 0) {
-          const failedChecks = result.checks.filter(c => !c.passed);
-          const passedChecks = result.checks.filter(c => c.passed);
-
-          if (passedChecks.length > 0) {
-            console.log(chalk.green.bold(`\n✓ ${passedChecks.length} checks passed`));
-          }
-
-          if (failedChecks.length > 0) {
-            console.log(chalk.red.bold('\n✗ Failed checks:'));
-            failedChecks.forEach(check => {
-              console.log(chalk.red(`  • ${check.name}: ${check.message}`));
-            });
-          }
-        }
-
-        if (result.warnings && result.warnings.length > 0) {
-          console.log(chalk.yellow.bold('\n⚠️  Warnings:'));
-          result.warnings.forEach((warning, index) => {
-            console.log(chalk.yellow(`  ${index + 1}. ${warning.field}: ${warning.message}`));
-          });
-        }
-
-        console.log(chalk.cyan('\nNext step: Run "amp publish" to submit to registry'));
-        process.exit(0);
-      } else {
-        console.log(chalk.red.bold('❌ Validation Failed'));
-
-        if (result.errors && result.errors.length > 0) {
-          console.log(chalk.red.bold('\nErrors:'));
-          result.errors.forEach((error, index) => {
-            console.log(chalk.red(`  ${index + 1}. ${error.field}: ${error.message}`));
-          });
-        } else {
-          // If no errors array, show the entire response for debugging
-          console.log(chalk.red.bold('\nValidation failed but no specific errors were provided.'));
-          console.log(chalk.gray('\nValidator response:'));
-          console.log(chalk.gray(JSON.stringify(result, null, 2)));
-        }
-
-        if (result.warnings && result.warnings.length > 0) {
-          console.log(chalk.yellow.bold('\nWarnings:'));
-          result.warnings.forEach((warning, index) => {
-            console.log(chalk.yellow(`  ${index + 1}. ${warning.field}: ${warning.message}`));
-          });
-        }
-
-        console.log(chalk.gray('\nPlease fix the errors and try again.'));
-        process.exit(1);
-      }
-    } catch (apiError: any) {
-      if (axios.isAxiosError(apiError)) {
-        if (apiError.response) {
-          console.error(chalk.red('❌ Validation Failed'));
-          console.error(chalk.gray(`\nAPI Error: ${apiError.response.status} ${apiError.response.statusText}`));
-
-          if (apiError.response.data) {
-            const errorData = apiError.response.data;
-
-            if (errorData.errors && Array.isArray(errorData.errors)) {
-              console.log(chalk.red.bold('\nErrors:'));
-              errorData.errors.forEach((error: any, index: number) => {
-                const field = error.field || error.path || 'unknown';
-                const message = error.message || error.msg || 'Unknown error';
-                console.log(chalk.red(`  ${index + 1}. ${field}: ${message}`));
-              });
-            } else if (errorData.message) {
-              console.log(chalk.red(`\n${errorData.message}`));
-            } else {
-              console.log(chalk.red(`\n${JSON.stringify(errorData, null, 2)}`));
-            }
-          }
-        } else if (apiError.request) {
-          console.error(chalk.red('❌ Connection Error'));
-          console.error(chalk.gray('\nCould not connect to validator API.'));
-          console.error(chalk.gray('Please check your internet connection and try again.'));
-        } else {
-          console.error(chalk.red('❌ Request Error'));
-          console.error(chalk.gray(`\n${apiError.message}`));
-        }
-      } else {
-        throw apiError;
-      }
-      process.exit(1);
+    if (options.remote) {
+      console.log(chalk.gray('Using remote validator API...'));
+      const response = await axios.post(VALIDATOR_URL, { manifest, url: homepage }, { timeout: 30000 });
+      printResult(response.data);
+      process.exit(response.data.passed ? 0 : 1);
     }
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
+
+    if (!process.env.JWT_SECRET) {
+      process.env.JWT_SECRET = 'amp-cli-local-validation-only';
+    }
+
+    console.log(chalk.gray('Validating offline with @agentmanifest/validator...'));
+    const result = await validateManifestObject(manifest, homepage);
+    printResult(result);
+
+    if (result.passed) {
+      console.log(chalk.cyan('\nNext step: Run "amp publish" to submit to registry'));
+    }
+    process.exit(result.passed ? 0 : 1);
+  } catch (error: unknown) {
+    const e = error as { code?: string; message?: string };
+    if (e.code === 'ENOENT') {
       console.error(chalk.red('❌ File Not Found'));
-      console.error(chalk.gray(`\nCould not find manifest file at: ${filePath}`));
       console.error(chalk.gray('\nRun "amp init" to create a new manifest.'));
-    } else if (error.code === 'EACCES') {
-      console.error(chalk.red('❌ Permission Denied'));
-      console.error(chalk.gray(`\nCannot read file: ${filePath}`));
     } else {
-      console.error(chalk.red('❌ Unexpected Error'));
-      console.error(chalk.gray(`\n${error.message}`));
+      console.error(chalk.red(`❌ ${e.message ?? error}`));
     }
     process.exit(1);
   }

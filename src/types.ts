@@ -1,5 +1,5 @@
 /**
- * Type definitions for Agent Manifest Protocol v0.2
+ * Type definitions for Agent Manifest Protocol v0.3 (CLI scaffold and helpers).
  */
 
 export interface EndpointParameter {
@@ -17,55 +17,37 @@ export interface Endpoint {
   response_description: string;
 }
 
-export interface FreeTier {
-  queries_per_day?: number | null;
-  queries_per_month?: number | null;
-}
-
-export interface PaidTier {
-  amount_usd: number;
-  unit: string;
-  description: string;
-}
-
-export interface Pricing {
-  model: 'free' | 'per-query' | 'subscription' | 'pay-what-you-want' | 'tiered';
-  free_tier?: FreeTier | null;
-  paid_tier?: PaidTier | null;
-  support_url?: string | null;
-}
-
-export interface Payment {
-  provider?: string;
-  checkout_url: string;
-  key_provisioning_url?: string;
-  accepted_methods?: string[];
-  prepay_required?: boolean;
-}
-
-export interface Authentication {
-  required: boolean;
-  type: 'api_key' | 'oauth2' | 'bearer' | 'none' | null;
-  instructions?: string | null;
-}
-
-export interface Reliability {
-  maintained_by: 'individual' | 'organization' | 'community';
-  status_url?: string | null;
-  expected_uptime_pct?: number | null;
-}
-
 export interface AgentManifest {
-  spec_version: 'agentmanifest-0.2';
+  spec_version: 'agentmanifest-0.3';
   name: string;
   version: string;
   description: string;
+  homepage?: string;
+  documentation?: string;
   categories: string[];
-  primary_category: 'reference' | 'live' | 'computational' | 'transactional' | 'enrichment' | 'personal' | 'discovery';
+  primary_category:
+    | 'reference'
+    | 'live'
+    | 'computational'
+    | 'transactional'
+    | 'enrichment'
+    | 'personal'
+    | 'discovery';
   endpoints: Endpoint[];
-  pricing: Pricing;
-  authentication: Authentication;
-  reliability: Reliability;
+  pricing: {
+    model: string;
+    free_tier?: { queries_per_day?: number | null; queries_per_month?: number | null } | null;
+    paid_tier?: Record<string, unknown> | null;
+    support_url?: string | null;
+  };
+  payment?: null | Record<string, unknown>;
+  authentication: {
+    required: boolean;
+    type: 'api_key' | 'oauth2' | 'bearer' | 'none' | null;
+    instructions?: string | null;
+  };
+  reliability?: Record<string, unknown>;
+  rate_limits?: Record<string, unknown>;
   agent_notes: string;
   contact: string;
   listing_requested: boolean;

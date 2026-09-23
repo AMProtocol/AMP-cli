@@ -1,0 +1,25 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "SWAPI Test",
+    "version": "1.0.0",
+    "description": "A minimal Star Wars API fixture for import tests."
+  },
+  "host": "swapi.dev",
+  "basePath": "/api",
+  "schemes": ["https"],
+  "paths": {
+    "/people": {
+      "get": {
+        "summary": "List all people in the Star Wars universe",
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/people/{id}": {
+      "get": {
+        "summary": "Retrieve a single person by ID",
+        "responses": { "200": { "description": "OK" } }
+      }
+    }
+  }
+}
